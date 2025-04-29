@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Reserve a Seat</title>
+    </head>
+
+    <body>
+        <h1>Reserve a Seat</h1>
+        {% if error %}
+            <p style="color:red">{{ error }}</p>
+        {% endif %}
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.passenger_name.label }}<br>
+                {{ form.passenger_name() }}
+                {% for error in form.passenger_name.errors %}
+                    <span style="color:red">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.seat_row.label }}<br>
+                {{ form.seat_row() }}
+                {% for error in form.seat_row.errors %}
+                    <span style="color:red">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.seat_col.label }}<br>
+                {{ form.seat_col() }}
+                {% for error in form.seat_col.errors %}
+                    <span style="color:red">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>{{ form.submit() }}</p>
+        </form>
+        <p><a href="{{ url_for('index') }}">Back to Main Menu</a></p>
+    </body>
+</html>
