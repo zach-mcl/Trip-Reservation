@@ -6,13 +6,6 @@ from wtforms.validators import DataRequired, NumberRange
 import secrets
 import os
 
-# used to generate the key:
-# new terminal here in this file
-# type the following:
-# python3
-# import secrets
-# secret_key = secrets.token_hex(32)
-# print(secret_key)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '93706c9e3f77354f88ad49691ed40ba39577805ba18482498309142b4bc67856'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.abspath("/app/reservations.db")}'
@@ -58,7 +51,7 @@ def admin_login():
     error = None
     if form.validate_on_submit():
         admin = Admin.query.filter_by(username = form.username.data).first()
-        if admin and admin.password == form.password.data:  # no password hashing since this is not a real app
+        if admin and admin.password == form.password.data:  # could include password hashing
             return redirect(url_for('admin_dashboard'))
         else:
             error = "Invalid credentials"
@@ -68,12 +61,13 @@ def admin_login():
 def reserve():
     form = ReservationForm()
     error = None
+    reservation = None
     if form.validate_on_submit():
         passenger_name = form.passenger_name.data
         row = form.seat_row.data
         col = form.seat_col.data
         existing_reservation = Reservation.query.filter_by(seatRow=row, seatColumn=col).first()
-       
+
         if existing_reservation:
             error = 'This seat is already reserved.'
         else:
@@ -87,9 +81,10 @@ def reserve():
             )
             db.session.add(new_reservation)
             db.session.commit()
+            reservation = new_reservation
             
-            return render_template('confirm_reservation.html', reservation=new_reservation)
-    return render_template('reserve.html', form=form, error=error)
+            # return render_template('confirm_reservation.html', reservation=new_reservation)
+    return render_template('reserve.html', form=form, error=error, reservation=reservation)
     
 if __name__ == '__main__':
     with app.app_context():

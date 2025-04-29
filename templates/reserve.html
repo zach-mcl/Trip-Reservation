@@ -6,9 +6,21 @@
 
     <body>
         <h1>Reserve a Seat</h1>
+
         {% if error %}
             <p style="color:red">{{ error }}</p>
         {% endif %}
+
+        {% if reservation %}
+            <h2>Reservation Successful!</h2>
+            <p>Thank you for your reservation, {{ reservation.passengerName }}.</p>
+            <p>Your reservation details:</p>
+            <ul>
+                <li>eTicket Number: <strong>{{ reservation.eTicketNumber }}</strong></li>
+                <li>Seat: Row {{ reservation.seatRow }}, Column {{ reservation.seatColumn }}</li>
+            </ul>
+        {% endif %}
+
         <form method="POST">
             {{ form.hidden_tag() }}
             <p>

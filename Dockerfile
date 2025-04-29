@@ -11,6 +11,3 @@ COPY . .
 EXPOSE 5001
 
 CMD ["flask", "run", "--host=0.0.0.0", "--port", "5001"]
-
-# docker build -t tripresapp .
-# docker run -p 5001:5001 --name tripresapp-container tripresapp
