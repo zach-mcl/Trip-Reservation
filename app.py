@@ -1,3 +1,4 @@
+# import logging
 from flask import Flask, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
@@ -5,11 +6,13 @@ from wtforms import StringField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 import secrets
 import os
+from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '93706c9e3f77354f88ad49691ed40ba39577805ba18482498309142b4bc67856'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.abspath("/app/reservations.db")}'
 db = SQLAlchemy(app)
+# logging.basicConfig(level=logging.DEBUG)
 
 class Reservation(db.Model):
     __tablename__ = 'reservations'
@@ -24,6 +27,10 @@ class Reservation(db.Model):
         return f"<Reservation {self.eTicketNumber}>"
     
 class Admin(db.Model):
+    __tablename__ = 'admins'
+    # admin1 = 12345
+    # admin2 = 24680
+    # admin3 = 98765
     username = db.Column(db.String, primary_key = True)
     password = db.Column(db.String, nullable = False)
 
@@ -50,12 +57,30 @@ def admin_login():
     form = AdminLoginForm()
     error = None
     if form.validate_on_submit():
-        admin = Admin.query.filter_by(username = form.username.data).first()
-        if admin and admin.password == form.password.data:  # could include password hashing
+        admins = Admin.query.filter_by(username = form.username.data).first()
+        if admins and admins.password == form.password.data: 
             return redirect(url_for('admin_dashboard'))
         else:
-            error = "Invalid credentials"
+            error = "Incorrect username and/or password."
     return render_template('admin_login.html', form=form, error=error)
+
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    reservations = Reservation.query.all()
+    seating_chart_data = get_seating_chart_data(reservations)
+    # total_sales = db.session.query(db.func.sum(Reservation.price)).scalar() or 0
+    # return render_template('admin_dashboard.html', reservations=reservations, total_sales=total_sales, cost_matrix=cost_matrix)
+    return render_template('admin_dashboard.html', reservations=reservations, seating_chart_data=seating_chart_data)
+
+def get_seating_chart_data(reservations):
+    seating_chart = [['_' for _ in range(4)] for _ in range(12)]
+
+    for res in reservations:
+        row_index = res.seatRow - 1
+        col_index = res.seatColumn - 1
+        if 0 <= row_index < 12 and 0 <= col_index < 4:
+            seating_chart[row_index][col_index] = 'X'
+    return seating_chart
 
 @app.route('/reserve', methods=['GET', 'POST'])
 def reserve():
@@ -80,8 +105,14 @@ def reserve():
                 eTicketNumber = e_ticket_number
             )
             db.session.add(new_reservation)
-            db.session.commit()
-            reservation = new_reservation
+            try:
+                db.session.commit()
+                reservation = new_reservation
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                error = f"Database error: {e}"
+                app.logger.error(f"Error savinf reservation: {e}")
+                reservation = None
             
             # return render_template('confirm_reservation.html', reservation=new_reservation)
     return render_template('reserve.html', form=form, error=error, reservation=reservation)
