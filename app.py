@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField
@@ -20,20 +20,14 @@ class Reservation(db.Model):
     seatColumn = db.Column(db.Integer, nullable = False)
     eTicketNumber = db.Column(db.String(120), unique = True, nullable = False)
     created = db.Column(db.TIMESTAMP, server_default = db.func.now())
-
-    def __repr__(self):
-        return f"<Reservation {self.eTicketNumber}>"
     
 class Admin(db.Model):
-    __tablename__ = 'admins'
     # admin1 = 12345
     # admin2 = 24680
     # admin3 = 98765
+    __tablename__ = 'admins'
     username = db.Column(db.String, primary_key = True)
     password = db.Column(db.String, nullable = False)
-
-    def __repr__(self):
-        return f"<Admin {self.username}"
     
 class AdminLoginForm(FlaskForm):
     username = StringField('Username', validators = [DataRequired()])
@@ -59,11 +53,23 @@ def admin_login():
         if admins and admins.password == form.password.data: 
             return redirect(url_for('admin_dashboard'))
         else:
-            error = "Incorrect username and/or password."
+            error = "Invalid username and/or password."
     return render_template('admin_login.html', form=form, error=error)
 
-@app.route('/admin_dashboard')
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
+    if request.method == 'POST':
+        eTicketNumber = request.form.get('eTicketNumber')
+        if eTicketNumber:
+            reservation = Reservation.query.filter_by(eTicketNumber=eTicketNumber).first()
+            if reservation:
+                db.session.delete(reservation)
+                try:
+                    db.session.commit()
+                except SQLAlchemyError as e:
+                    db.session.rollback()
+                    app.logger(f"Error deleting reservation: {e}")
+
     reservations = Reservation.query.all()
     seating_chart_data = get_seating_chart_data(reservations)
     total_sales = get_total_cost(reservations)
@@ -102,11 +108,9 @@ def reserve():
         row = form.seat_row.data
         col = form.seat_col.data
         existing_reservation = Reservation.query.filter_by(seatRow=row, seatColumn=col).first()
-
         if existing_reservation:
             error = 'This seat is already reserved.'
         else:
-            
             e_ticket_number = secrets.token_hex(8)      # couldn't figure out the method in the video demo so I did this
             new_reservation = Reservation(
                 passengerName = passenger_name,
@@ -123,8 +127,6 @@ def reserve():
                 error = f"Database error: {e}"
                 app.logger.error(f"Error savinf reservation: {e}")
                 reservation = None
-            
-            # return render_template('confirm_reservation.html', reservation=new_reservation)
     return render_template('reserve.html', form=form, error=error, reservation=reservation)
     
 if __name__ == '__main__':

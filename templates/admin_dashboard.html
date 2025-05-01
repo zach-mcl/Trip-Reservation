@@ -21,8 +21,10 @@
         <ul>
             {% for res in reservations %}
             <li>
-                {{ res.passengerName }} -
-                Row: {{ res.seatRow }}, Column: {{ res.seatColumn }} - eTicket: {{ res.eTicketNumber }}
+                {{ res.passengerName }} - Row: {{ res.seatRow }}, Column: {{ res.seatColumn }} - eTicket: {{ res.eTicketNumber }}
+                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="display: inline-block;">
+                    <input type="hidden" name="eTicketNumber" value="{{ res.eTicketNumber }}"> <button type="submit" class="delete-button">Delete</button>
+                </form>
             </li>
             {% endfor %}
         </ul>
