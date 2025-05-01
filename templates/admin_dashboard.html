@@ -14,14 +14,15 @@
             {% endfor %}
         </pre>
 
-        <h2>Reservation Listing</h2>
+        <p>Total Sales: ${{ total_sales }}</p>
+
+        <h2>Reservation List</h2>
         {% if reservations %}
         <ul>
             {% for res in reservations %}
             <li>
                 {{ res.passengerName }} -
-                Row: {{ res.seatRow }}, Column: {{ res.seatColumn }} -
-                eTicket: {{ res.eTicketNumber }}
+                Row: {{ res.seatRow }}, Column: {{ res.seatColumn }} - eTicket: {{ res.eTicketNumber }}
             </li>
             {% endfor %}
         </ul>
