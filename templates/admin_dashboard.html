@@ -1,37 +1,42 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Admin Dashboard</title>
-    </head>
 
-    <body>
-        <h1>Admin Dashboard</h1>
+<head>
+    <title>Admin Dashboard</title>
+</head>
 
-        <h2>Seating Chart</h2>
-        <pre>
+<body>
+    <h1>Admin Dashboard</h1>
+
+    <h2>Seating Chart</h2>
+    <pre>
             {% for row in seating_chart_data %}
                 [{{ row|join(' ') }}]<br>
             {% endfor %}
         </pre>
 
-        <p>Total Sales: ${{ total_sales }}</p>
+    <p>Total Sales: ${{ total_sales }}</p>
 
-        <h2>Reservation List</h2>
-        {% if reservations %}
-        <ul>
-            {% for res in reservations %}
-            <li>
-                {{ res.passengerName }} - Row: {{ res.seatRow }}, Column: {{ res.seatColumn }} - eTicket: {{ res.eTicketNumber }}
-                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="display: inline-block;">
-                    <input type="hidden" name="eTicketNumber" value="{{ res.eTicketNumber }}"> <button type="submit" class="delete-button">Delete</button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p>No reservations yet.</p>
-        {% endif %}
+    <h2>Reservation List</h2>
+    {% if reservations %}
+    <ul>
+        {% for res in reservations %}
+        <li>
+            {{ res.passengerName }} - Row: {{ res.seatRow }}, Column: {{ res.seatColumn }} - eTicket: {{
+            res.eTicketNumber }}
+            <a href="{{ url_for('edit_reservation', reservation_id=res.id) }}" class="edit-button">Edit</a>
+            <form method="POST" action="{{ url_for('admin_dashboard') }}" style="display: inline-block;">
+                <input type="hidden" name="eTicketNumber" value="{{ res.eTicketNumber }}">
+                <button type="submit" class="delete-button">Delete</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No reservations yet.</p>
+    {% endif %}
 
-        <p><a href="{{ url_for('index') }}">Back to Main Menu</a></p>
-    </body>
+    <p><a href="{{ url_for('index') }}">Back to Main Menu</a></p>
+</body>
+
 </html>

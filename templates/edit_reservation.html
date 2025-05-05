@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Edit Reservation</title>
+</head>
+
+<body>
+    <h1>Edit Reservation #{{ reservation.id }}</h1>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.passenger_name.label }}<br>
+            {{ form.passenger_name(size=32) }}
+        </p>
+
+        <p>
+            {{ form.seat_row.label }}<br>
+            {{ form.seat_row() }}
+        </p>
+
+        <p>
+            {{ form.seat_col.label }}<br>
+            {{ form.seat_col() }}
+        </p>
+
+        <p>
+            <button type="submit">{{ form.submit.label.text or "Update" }}</button>
+            <a href="{{ url_for('admin_dashboard') }}">Cancel</a>
+        </p>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for category, msg in messages %}
+        <li class="flash {{ category }}">{{ msg }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+</body>
+
+</html>
